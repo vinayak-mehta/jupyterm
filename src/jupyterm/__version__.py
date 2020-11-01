@@ -15,7 +15,7 @@ def generate_version(version, prerelease=None, revision=None):
 
 
 __title__ = "jupyterm"
-__description__ = "Jupyter + terminal = ♥."
+__description__ = "A toy implementation of the Jupyter client in Rust."
 __url__ = "https://github.com/vinayak-mehta/jupyterm"
 __version__ = generate_version(VERSION, prerelease=PRERELEASE, revision=REVISION)
 __author__ = "Vinayak Mehta"
