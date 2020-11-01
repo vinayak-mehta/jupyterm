@@ -179,6 +179,7 @@ impl Cutypr {
             .recv_multipart(0)
             .unwrap();
 
+        // https://gitlab.com/srwalker101/rust-jupyter-client/-/blob/dev/src/wire.rs#L28
         let delim_idx = msg_list
             .iter()
             .position(|r| String::from_utf8(r.to_vec()).unwrap() == "<IDS|MSG>")
