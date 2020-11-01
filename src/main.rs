@@ -9,9 +9,21 @@ use zmq;
 
 type HmacSha256 = Hmac<Sha256>;
 
+fn start_kernel(py: Python) -> Value {
+    let locals = [("jupyterm", py.import("jupyterm").unwrap())].into_py_dict(py);
+    let code = "jupyterm.start_kernel()";
+    let kernel_info_str: &str = py
+        .eval(code, None, Some(&locals))
+        .unwrap()
+        .extract()
+        .unwrap();
+    let kernel_info: Value = serde_json::from_str(kernel_info_str).unwrap();
+    kernel_info
+}
+
 fn make_channel(context: &zmq::Context, ports: &Value, channel_type: &str) -> zmq::Socket {
     let url = format!("tcp://127.0.0.1:{}", ports[channel_type]);
-    let mut channel: zmq::Socket;
+    let channel: zmq::Socket;
 
     match channel_type {
         "shell" => {
@@ -32,25 +44,8 @@ fn make_channel(context: &zmq::Context, ports: &Value, channel_type: &str) -> zm
     channel
 }
 
-fn start_kernel(py: Python) -> Value {
-    let locals = [("jupyterm", py.import("jupyterm").unwrap())].into_py_dict(py);
-    let code = "jupyterm.start_kernel()";
-    let kernel_info_str: &str = py
-        .eval(code, None, Some(&locals))
-        .unwrap()
-        .extract()
-        .unwrap();
-    let kernel_info: Value = serde_json::from_str(kernel_info_str).unwrap();
-    kernel_info
-}
-
-// useful for debugging!
-fn print_type_of<T>(_: &T) {
-    println!("{}", std::any::type_name::<T>())
-}
-
 struct Session {
-    key: Value,
+    // key: Value,
     session_id: String,
 }
 
@@ -212,14 +207,14 @@ fn main() {
     });
 
     let session = Session {
-        key: kernel_info["key"].clone(),
+        // key: kernel_info["key"].clone(),
         session_id: String::from("rust"),
     };
 
     let mut client = Cutypr::new(session, kernel_info["ports"].clone());
     client.initialize_channels();
 
-    let mut execution_state = "idle";
+    let mut execution_state;
     let mut execution_count: i32 = 1;
     let mut code = String::new();
 
