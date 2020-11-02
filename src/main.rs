@@ -155,7 +155,20 @@ impl Cutypr {
             .unwrap();
     }
 
-    // fn deserialize(&self, msg_frames) {}
+    fn deserialize(&self, msg_frames: &[Vec<u8>]) -> Map<String, Value> {
+        let header = serde_json::from_str(str::from_utf8(&msg_frames[0]).unwrap()).unwrap();
+        let parent_header = serde_json::from_str(str::from_utf8(&msg_frames[1]).unwrap()).unwrap();
+        let metadata = serde_json::from_str(str::from_utf8(&msg_frames[2]).unwrap()).unwrap();
+        let content = serde_json::from_str(str::from_utf8(&msg_frames[3]).unwrap()).unwrap();
+
+        let mut msg = Map::new();
+        msg.insert("header".to_string(), Value::Object(header));
+        msg.insert("parent_header".to_string(), Value::Object(parent_header));
+        msg.insert("metadata".to_string(), Value::Object(metadata));
+        msg.insert("content".to_string(), Value::Object(content));
+
+        msg
+    }
 
     fn msg_ready(&self) -> bool {
         self.iopub_channel
@@ -179,19 +192,10 @@ impl Cutypr {
             .iter()
             .position(|r| String::from_utf8(r.to_vec()).unwrap() == "<IDS|MSG>")
             .unwrap();
-
-        // couldn't move msg_frames into deserialize
         let msg_frames = &msg_list[delim_idx + 2..];
-        let header = serde_json::from_str(str::from_utf8(&msg_frames[0]).unwrap()).unwrap();
-        let parent_header = serde_json::from_str(str::from_utf8(&msg_frames[1]).unwrap()).unwrap();
-        let metadata = serde_json::from_str(str::from_utf8(&msg_frames[2]).unwrap()).unwrap();
-        let content = serde_json::from_str(str::from_utf8(&msg_frames[3]).unwrap()).unwrap();
 
-        let mut msg = Map::new();
-        msg.insert("header".to_string(), Value::Object(header));
-        msg.insert("parent_header".to_string(), Value::Object(parent_header));
-        msg.insert("metadata".to_string(), Value::Object(metadata));
-        msg.insert("content".to_string(), Value::Object(content));
+        // deserialize
+        let msg = self.deserialize(&msg_frames);
 
         msg
     }
